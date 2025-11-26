@@ -42,6 +42,7 @@ export default function Home() {
     const [cadJobLoading, setCadJobLoading] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
     const infoMenuRef = useRef<HTMLDivElement | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     const { messages, sendMessage, status } = useChat({
         transport: new DefaultChatTransport({
@@ -124,6 +125,10 @@ export default function Home() {
     useEffect(() => {
         setInfoOpen(false);
     }, [activeTabId]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isLoading]);
 
     const infoFields = activeTab
         ? [
@@ -273,8 +278,8 @@ return (
             <div className="w-full relative flex flex-col h-full">
             <button
                 type="button"
-                onClick={() => setInfoOpen((prev) => !prev)}
-                className="absolute top-3 right-3 z-10 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
+                onClick={() => setInfoOpen(!infoOpen)}
+                className="absolute cursor-pointer top-3 right-3 z-10 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
                 aria-label="Toggle CAD info panel"
             >
                 <InfoIcon className="h-4 w-4" />
@@ -282,62 +287,56 @@ return (
             {infoOpen && (
                 <div
                 ref={infoMenuRef}
-                className="absolute top-14 right-0 z-20 w-80 max-h-[75vh] overflow-auto rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur"
+                className="absolute top-14 right-0 z-20 w-96 rounded-2xl border border-gray-200 bg-white shadow-xl backdrop-blur-sm"
                 >
-
-                <div className="flex items-center justify-between rounded-2xl">
-                    <p className="text-sm font-semibold text-gray-700">CAD Details</p>
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Design Details</h3>
                     <button
                     type="button"
                     onClick={() => setInfoOpen(false)}
-                    className="text-gray-400 transition hover:text-gray-600"
+                    className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
                     aria-label="Close CAD info panel"
                     >
-                    <XIcon className="h-3 w-3" />
+                    <XIcon className="h-5 w-5" />
                     </button>
                 </div>
-                <div className="mt-3 grid gap-3 text-sm text-gray-600">
-                    {infoFields.map((field) => (
-                    <div key={field.label} className="space-y-1">
-                        <p className="text-[10px] uppercase tracking-wide text-gray-500">{field.label}</p>
-                        <p className="text-sm text-gray-900 break-all">{field.value}</p>
-                    </div>
-                    ))}
-                </div>
-                {activeTab.cadJob?.outputs?.['source.step'] && (
-                    <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[10px] uppercase tracking-wide text-gray-500">Available outputs</p>
-                        {activeTab.cadJob?.outputs?.['source.step'] && (
+
+                {/* Content */}
+                <div className="space-y-6 px-6 py-4">
+                    {/* Name Field */}
+                    {infoFields.map((field) => {
+                        if (field.label === "Name") {
+                            return (
+                                <div key={field.label} className="space-y-2">
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        {field.label}
+                                    </label>
+                                    <p className="rounded-lg bg-gray-50 px-3 py-2.5 font-medium text-gray-900 break-all">
+                                        {field.value}
+                                    </p>
+                                </div>
+                            );
+                        }
+                    })}
+
+                    {/* Download Button */}
+                    {activeTab.cadJob?.outputs?.['source.step'] && (
                         <button
                             onClick={handleDownloadSTEP}
-                            className="flex items-center gap-1 px-2 py-1 text-[10px] bg-gray-800 hover:bg-gray-900 text-white rounded-md transition-colors"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-2xl transition-colors duration-200"
                         >
-                            <DownloadIcon className="w-3 h-3" />
-                            <span>Download CAD</span>
+                            <DownloadIcon className="w-4 h-4" />
+                            <span>Export as STEP</span>
                         </button>
-                        )}
-                    </div>
-                    </div>
-                )}
-                {activeTab.cadJob?.code && (
-                    <div className="mt-3 space-y-1">
-                    <p className="text-[10px] uppercase tracking-wide text-gray-500">Generated KCL code</p>
-                    <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-2xl border border-dashed border-gray-200 bg-white/70 p-3 text-[11px] text-gray-900">
-                        {activeTab.cadJob?.code}
-                    </pre>
-                    </div>
-                )}
-                {cadJobError && (
-                    <p className="mt-3 text-sm text-red-600">{cadJobError}</p>
-                )}
-                <div className="mt-3 space-y-1 text-slate-100">
-                    <p className="text-[10px] uppercase tracking-wide text-gray-500">CAD job JSON</p>
-                    <div className="rounded-xl bg-slate-900/90 p-3 text-xs">
-                    <pre className="max-h-[320px] overflow-auto whitespace-pre-wrap">
-                        {cadJobContent}
-                    </pre>
-                    </div>
+                    )}
+
+                    {/* Error Message */}
+                    {cadJobError && (
+                        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
+                            <p className="text-sm text-red-700">{cadJobError}</p>
+                        </div>
+                    )}
                 </div>
                 </div>
             )}
@@ -377,9 +376,7 @@ return (
     {/* Chat Panel - 30% */}
     <div className="w-[30%] rounded-2xl border border-gray-200 flex flex-col bg-white h-full overflow-hidden shadow-sm">
         {/* Messages Area */}
-        {/* <button className="bg-red-500 text-white p-2 rounded-md text-xl"  onClick={debug}>Test</button> */}
-
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 info-scrollbar">
         {messages.length === 0 ? (
             <div className="flex h-full min-h-[200px] flex-col items-center justify-center text-2xl text-gray-500">
             What do you want to design?
@@ -419,7 +416,7 @@ return (
                             return (
                             <div key={`${message.id}-${i}`} className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2">
                                 <div className="text-base whitespace-pre-wrap break-words">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                <ReactMarkdown  remarkPlugins={[remarkGfm]}>
                                     {part.text}
                                 </ReactMarkdown>
                                 </div>
@@ -523,6 +520,7 @@ return (
             </div>
             </div>
         )}
+        <div ref={messagesEndRef} />
         </div>
         {/* Input Area */}
         <div className="p-4">

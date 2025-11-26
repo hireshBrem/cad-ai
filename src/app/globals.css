@@ -51,3 +51,44 @@ body {
 .tabs-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.info-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.info-scrollbar::-webkit-scrollbar {
+  width: 1px;
+}
+
+.info-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.info-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 999px;
+}
+
+.tool-card-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.tool-card-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tool-card-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tool-card-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.tool-card-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.7);
+}

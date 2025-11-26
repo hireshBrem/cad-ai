@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   let payload: unknown;
   try {
     payload = await response.json();
-    console.log('payload', payload);
+    // console.log('payload', payload);
   } catch {
     payload = await clonedResponse.text();
   }
