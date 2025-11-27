@@ -6,13 +6,22 @@ import { createClient } from "redis";
 // Redis DB
 // List of strings of job ids
 
+const getRedisClient = () => {
+    const { REDIS_URL } = process.env
+    // console.log('REDIS_URL', REDIS_URL);
+    if (!REDIS_URL) {
+        throw new Error('REDIS_URL is not set');
+    }
+    return createClient({ url: REDIS_URL, socket: { connectTimeout: 10000 } });
+}
+
+const client = getRedisClient();
+
+client.on('error', err => console.log('Redis Client Error', err));
+client.connect();
+// console.log('ping', await client.ping())
+
 export async function addJob(jobId: string) {
-    const client = createClient({ url: 'redis://localhost:6379' });
-
-    client.on('error', err => console.log('Redis Client Error', err));
-
-    await client.connect();
-
     // Retrieve the jobs from the database
     const jobs = await getJobs();
     if (jobs) {
@@ -22,36 +31,28 @@ export async function addJob(jobId: string) {
     } else {
         await client.rPush('jobs', jobId);
     }
+    await client.quit();
+
 }
 
 export async function getJobs(): Promise<string[] | null> {
-    const client = createClient({ url: 'redis://localhost:6379' });
-
-
-    client.on('error', err => console.log('Redis Client Error', err));
-
-    await client.connect();
 
     try {
         const jobs: string[] = await client.lRange('jobs', 0, -1);
+        console.log('jobs', jobs);
         return jobs;
     } catch (error) {
         throw error;
     }
+
 }
 
 export async function removeJob(jobId: string) {
-    const client = createClient({ url: 'redis://localhost:6379' });
-    client.on('error', err => console.log('Redis Client Error', err));
-    await client.connect();
     await client.lRem('jobs', 1, jobId);
+    await client.quit();
 }
 
 export async function removeJobByIndex(index: number) {
-    const client = createClient({ url: 'redis://localhost:6379' });
-    client.on('error', err => console.log('Redis Client Error', err));
-    await client.connect();
-
     try {
         const jobs: string[] = await client.lRange('jobs', 0, -1);
 
@@ -67,14 +68,10 @@ export async function removeJobByIndex(index: number) {
     } catch (error) {
         throw error;
     }
+    await client.quit();
 }
 
 export async function removeAllJobs() {
-    const client = createClient({ url: 'redis://localhost:6379' });
-
-    client.on('error', err => console.log('Redis Client Error', err));
-
-    await client.connect();
-
     await client.del('jobs');
+    await client.quit();
 }
