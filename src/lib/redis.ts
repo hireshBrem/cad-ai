@@ -3,9 +3,6 @@
 // redis utils file
 import { createClient } from "redis";
 
-// Redis DB
-// List of strings of job ids
-
 const getRedisClient = () => {
     const { REDIS_URL } = process.env
     console.log('REDIS_URL', REDIS_URL);
