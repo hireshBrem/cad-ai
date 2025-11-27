@@ -13,6 +13,13 @@ RUN npm run build
 
 # Production stage
 FROM base AS production
+ENV NODE_ENV=production
+ARG REDIS_URL
+ARG KITTYCAD_API_KEY
+ARG ZOO_BEARER_TOKEN
+ENV REDIS_URL=${REDIS_URL}
+ENV KITTYCAD_API_KEY=${KITTYCAD_API_KEY}
+ENV ZOO_BEARER_TOKEN=${ZOO_BEARER_TOKEN}
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
