@@ -1,6 +1,8 @@
 # CAD AI
 
-AI-powered CAD design assistant. This project lets you create CAD designs using AI. Open source.
+AI-powered CAD design assistant. This project lets you create CAD designs using AI.
+
+![CAD AI demo screenshot](public/demo-pic.png)
 
 ## Setup
 
@@ -24,12 +26,14 @@ Create a `.env.local` file:
 cp .env.local.example .env.local
 ```
 
-Required variables:
+Required variables (see also `.env.local.example`):
 
-| Variable | Description |
-|----------|-------------|
-| `OPENAI_API_KEY` | Your OpenAI API key ([get one here](https://platform.openai.com/api-keys)) |
-| `NEXT_PUBLIC_KITTYCAD_API_KEY` | Your KittyCAD API key |
+| Variable           | Description                                                                 |
+|--------------------|-----------------------------------------------------------------------------|
+| `OPENAI_API_KEY`   | Your OpenAI API key ([get one here](https://platform.openai.com/api-keys))  |
+| `KITTYCAD_API_KEY` | Your KittyCAD API key                                                       |
+| `REDIS_URL`        | Redis connection URL (e.g., `http://localhost:6379`)                       |
+
 
 ### 4. Run the App
 
