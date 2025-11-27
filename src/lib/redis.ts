@@ -43,8 +43,9 @@ export async function getJobs(): Promise<string[] | null> {
         return jobs;
     } catch (error) {
         throw error;
+    } finally {
+        await client.quit();
     }
-
 }
 
 export async function removeJob(jobId: string) {
