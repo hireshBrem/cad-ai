@@ -30,7 +30,6 @@ export async function addJob(jobId: string) {
     } else {
         await client.rPush('jobs', jobId);
     }
-    await client.quit();
 
 }
 
@@ -42,14 +41,11 @@ export async function getJobs(): Promise<string[] | null> {
         return jobs;
     } catch (error) {
         throw error;
-    } finally {
-        await client.quit();
-    }
+    } 
 }
 
 export async function removeJob(jobId: string) {
     await client.lRem('jobs', 1, jobId);
-    await client.quit();
 }
 
 export async function removeJobByIndex(index: number) {
@@ -68,10 +64,8 @@ export async function removeJobByIndex(index: number) {
     } catch (error) {
         throw error;
     }
-    await client.quit();
 }
 
 export async function removeAllJobs() {
     await client.del('jobs');
-    await client.quit();
 }
