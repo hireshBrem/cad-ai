@@ -7,7 +7,9 @@ const getRedisClient = () => {
     const { REDIS_URL } = process.env
     console.log('REDIS_URL', REDIS_URL);
     if (!REDIS_URL) {
-        throw new Error('REDIS_URL is not set');
+        console.log('REDIS_URL is not set');
+        // throw new Error('REDIS_URL is not set');
+
     }
     return createClient({ url: REDIS_URL, socket: { connectTimeout: 10000 } });
 }
