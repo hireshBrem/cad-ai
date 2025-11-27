@@ -8,7 +8,7 @@ import { createClient } from "redis";
 
 const getRedisClient = () => {
     const { REDIS_URL } = process.env
-    // console.log('REDIS_URL', REDIS_URL);
+    console.log('REDIS_URL', REDIS_URL);
     if (!REDIS_URL) {
         throw new Error('REDIS_URL is not set');
     }
