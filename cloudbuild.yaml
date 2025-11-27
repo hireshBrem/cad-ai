@@ -1,7 +1,9 @@
 steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-east1-docker.pkg.dev/cad-ai-479510/cloud-run-source-deploy/cad-ai/cad-ai:$SHORT_SHA', '.']
+    args: ['build', '-t', 'us-east1-docker.pkg.dev/cad-ai-479510/cloud-run-source-deploy/cad-ai/cad-ai:$SHORT_SHA', '.', '--build-arg', 'REDIS_URL=$$REDIS_URL']
+    secretEnv: ['REDIS_URL'] # Declare it here for the build step to access
+
 
   # Push the image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
