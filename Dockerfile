@@ -18,4 +18,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]
