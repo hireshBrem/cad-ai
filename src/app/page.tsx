@@ -37,9 +37,7 @@ export default function Home() {
         refreshTabs,
         isAtMaxTabs,
     } = useTabs();
-    const [cadJob, setCadJob] = useState<unknown | null>(null);
     const [cadJobError, setCadJobError] = useState<string | null>(null);
-    const [cadJobLoading, setCadJobLoading] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
     const infoMenuRef = useRef<HTMLDivElement | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -137,19 +135,9 @@ export default function Home() {
         ].filter((field) => field.value)
         : [];
 
-    const cadJobContent = cadJobLoading
-        ? 'Fetching CAD job...'
-        : cadJob
-        ? typeof cadJob === 'string'
-            ? cadJob
-            : JSON.stringify(cadJob, null, 2)
-        : 'No CAD job available.';
-
     const handleCADfile = async (tabId: string) => {
         const fallbackId = tabId ?? 'bc84c12a-64fb-4331-bac8-b0b83053d96d';
-        setCadJobLoading(true);
         setCadJobError(null);
-        setCadJob(null);
 
         try {
         const response = await fetch(`/api/cad-proxy?cadId=${encodeURIComponent(fallbackId)}`);
@@ -167,8 +155,8 @@ export default function Home() {
             throw new Error(`CAD proxy failed: ${errorMessage}`);
         }
 
-        setCadJob(payload);
-        } catch (error) {
+
+    } catch (error) {
         console.error("Failed to fetch CAD job", error);
         if (error instanceof Error) {
             setCadJobError(error.message);
@@ -176,7 +164,6 @@ export default function Home() {
             setCadJobError("Unknown error fetching CAD job.");
         }
         } finally {
-        setCadJobLoading(false);
         }
     };
 
@@ -238,13 +225,13 @@ return (
             <div
             key={tab.tabId}
             onClick={() => setActiveTabId(tab.tabId)}
-            className={`group flex items-center gap-2 px-3 py-1.5 rounded-2xl cursor-pointer transition-colors flex-shrink-0 ${
+            className={`group flex items-center gap-2 px-3 py-1.5 rounded-2xl cursor-pointer transition-colors shrink-0 ${
                 activeTabId === tab.tabId
                 ? 'bg-gray-800 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
             >
-            <PackageIcon className="w-4 h-4 flex-shrink-0" />
+            <PackageIcon className="w-4 h-4 shrink-0" />
             <span className="text-base font-medium whitespace-nowrap">{tab.name}</span>
             {tabs.length > 1 && (
                 <button
@@ -262,7 +249,7 @@ return (
         <button
             onClick={() => void createNewTab()}
             disabled={isAtMaxTabs}
-            className={`p-1.5 rounded-md transition-colors flex-shrink-0 ${
+            className={`p-1.5 rounded-md transition-colors shrink-0 ${
             isAtMaxTabs
                 ? 'text-gray-300 cursor-not-allowed'
                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
@@ -415,7 +402,7 @@ return (
                         if (part.type === 'text' || part.type === 'reasoning') {
                             return (
                             <div key={`${message.id}-${i}`} className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2">
-                                <div className="text-base whitespace-pre-wrap break-words">
+                                <div className="text-base whitespace-pre-wrap wrap-break-word">
                                 <ReactMarkdown  remarkPlugins={[remarkGfm]}>
                                     {part.text}
                                 </ReactMarkdown>

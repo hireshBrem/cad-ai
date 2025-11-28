@@ -30,7 +30,6 @@ const toolVariantStyles: Record<
 const ToolCard = ({ toolName, variant, payload, label }: ToolCardProps) => {
   const [isOpen, setIsOpen] = useState(variant === "result");
   const styles = toolVariantStyles[variant];
-  const displayLabel = label ?? styles.description;
   const isCallVariant = variant === "call";
     console.log('toolName', toolName);
     console.log('variant', variant);
