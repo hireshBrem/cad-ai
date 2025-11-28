@@ -4,6 +4,12 @@ AI-powered CAD design assistant. This project lets you create CAD designs using 
 
 ![CAD AI demo screenshot](public/demo-pic.png)
 
+## Clone the Repository
+
+```bash
+git clone https://github.com/your-org/cad-ai.git .
+```
+
 ## Setup
 
 ### 1. Start Redis
@@ -31,7 +37,7 @@ Required variables (see also `.env.local.example`):
 | Variable           | Description                                                                 |
 |--------------------|-----------------------------------------------------------------------------|
 | `OPENAI_API_KEY`   | Your OpenAI API key ([get one here](https://platform.openai.com/api-keys))  |
-| `KITTYCAD_API_KEY` | Your KittyCAD API key                                                       |
+| `KITTYCAD_API_KEY` | Your KittyCAD API ([get one here](https://zoo.dev/account))                                                       |
 | `REDIS_URL`        | Redis connection URL (e.g., `http://localhost:6379`)                       |
 
 
