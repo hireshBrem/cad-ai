@@ -17,8 +17,14 @@ export const textToCadTool = createTool({
     modelVersion: z.string().optional().describe("KittyCAD model version to run the prompt through"),
     projectName: z.string().optional().describe("Project name to associate with the prompt"),
   }),
-  execute: async (input: TextToCadToolInput) => {
+  execute: async (input: TextToCadToolInput, executionContext?: { toolContext?: { kittyCADKey?: string; redisUrl?: string } }) => {
     try {
+        // Get keys from toolContext or fall back to env
+        const kittyCADKey = executionContext?.toolContext?.kittyCADKey || process.env.KITTYCAD_API_KEY;
+        const redisUrl = executionContext?.toolContext?.redisUrl || process.env.REDIS_URL;
+        console.log('kittyCADKey', kittyCADKey);
+        console.log('redisUrl', redisUrl);
+        
         console.log('input', input.context);
         const actualInput = input.context;
         const outputFormat = 'obj';
@@ -34,7 +40,7 @@ export const textToCadTool = createTool({
             {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${process.env.KITTYCAD_API_KEY}`,
+                Authorization: `Bearer ${kittyCADKey}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(bodyPayload)
@@ -45,7 +51,7 @@ export const textToCadTool = createTool({
 
         console.log('data', data);
 
-        // add to redis
+        // add to redis with dynamic URL
         await addJob(data.id);
 
         return {

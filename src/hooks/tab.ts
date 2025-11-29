@@ -7,7 +7,7 @@ import { addJob, getJobs, removeJobByIndex } from "@/lib/redis";
 const MAX_TABS = 8;
 const DEFAULT_JOB_ID = "default";
 
-export function useTabs() {
+export function useTabs({ kittyCADKey }: { kittyCADKey: string }) {
   const [tabs, setTabs] = useState<CADTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string>("");
 
@@ -23,7 +23,11 @@ export function useTabs() {
 
             try {
             const response = await fetch(
-                `/api/cad-proxy?cadId=${encodeURIComponent(job)}`
+                `/api/cad-proxy?cadId=${encodeURIComponent(job)}`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ kittyCADKey }),
+                }
             );
             const cadJobData = await response.json();
             return { job, cadJob: cadJobData };
@@ -85,7 +89,7 @@ export function useTabs() {
         }
         return nextTabsSnapshot[0]?.tabId ?? "";
         });
-    }, []);
+    }, [kittyCADKey]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {

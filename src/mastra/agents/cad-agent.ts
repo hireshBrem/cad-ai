@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
-import { coreCADTools } from "../tools/cad-tools";
+import { coreCADTools } from "@/mastra/tools/cad-tools";
 
 export const cadAgent = new Agent({
   name: "cad-agent",
