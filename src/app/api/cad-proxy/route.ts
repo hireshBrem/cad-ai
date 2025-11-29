@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   const { kittyCADKey } = await request.json();
   const nextUrl = new URL(request.url);
   const cadId = nextUrl.searchParams.get("cadId");
-//   console.log('kittyCADKey', kittyCADKey);
+
   if (!cadId) {
     return NextResponse.json({ error: "Missing cadId query param" }, { status: 400 });
   }

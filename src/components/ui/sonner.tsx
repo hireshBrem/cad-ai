@@ -43,10 +43,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         } as React.CSSProperties
       }
       toastOptions={{
-        classNameFunction: (toast) => {
-          const baseClass = "min-h-14 pl-4 pr-3 py-3 rounded-lg flex items-center gap-3 group relative"
-          return baseClass
-        },
+        className: "min-h-14 pl-4 pr-3 py-3 rounded-lg flex items-center gap-3 group relative",
         style: {
           padding: "12px 16px",
           fontSize: "14px",

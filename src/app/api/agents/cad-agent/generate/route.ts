@@ -17,9 +17,8 @@ const CAD_AGENT_INSTRUCTIONS = [
 export async function POST(req: Request) {
   const { messages, openAIKey } = await req.json();
 
-  // Use provided key or fallback to env
   const apiKey = openAIKey || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-  console.log('apiKey', apiKey);
+
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'OpenAI API key required' }), {
       status: 400,

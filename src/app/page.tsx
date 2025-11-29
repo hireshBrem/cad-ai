@@ -181,7 +181,7 @@ export default function Home() {
         : [];
 
     const handleCADfile = async (tabId: string) => {
-        const fallbackId = tabId ?? 'bc84c12a-64fb-4331-bac8-b0b83053d96d';
+        const fallbackId = tabId;
         setCadJobError(null);
 
         try {

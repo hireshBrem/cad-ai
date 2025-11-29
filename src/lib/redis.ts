@@ -8,8 +8,6 @@ const getRedisClient = () => {
     console.log('REDIS_URL', REDIS_URL);
     if (!REDIS_URL) {
         console.log('REDIS_URL is not set');
-        // throw new Error('REDIS_URL is not set');
-
     }
     return createClient({ url: REDIS_URL, socket: { connectTimeout: 10000 } });
 }
@@ -18,7 +16,6 @@ const client = getRedisClient();
 
 client.on('error', err => console.log('Redis Client Error', err));
 client.connect();
-// console.log('ping', await client.ping())
 
 export async function addJob(jobId: string) {
     // Retrieve the jobs from the database
@@ -37,7 +34,6 @@ export async function getJobs(): Promise<string[] | null> {
 
     try {
         const jobs: string[] = await client.lRange('jobs', 0, -1);
-        console.log('jobs', jobs);
         return jobs;
     } catch (error) {
         throw error;
