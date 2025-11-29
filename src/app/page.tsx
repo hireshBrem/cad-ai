@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isDataUIPart, isToolUIPart } from "ai";
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ObjViewer from "@/components/ObjViewer";
@@ -423,7 +424,7 @@ return (
         <div className="w-[30%] rounded-2xl border border-gray-200 flex flex-col bg-white h-full overflow-hidden shadow-sm">
             {/* Chat Header */}
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0">
-                <h2 className="text-lg font-semibold text-gray-900">Design Assistant</h2>
+                <h2 className="text-lg font-semibold text-gray-900"></h2>
                 <button
                     type="button"
                     onClick={() => setSettingsOpen(!settingsOpen)}
@@ -441,10 +442,15 @@ return (
                 What do you want to design?
                 </div>
             ) : (
-                <div className="space-y-4 transition-all duration-200 ease-out">
+                <div className="space-y-4">
+                <AnimatePresence mode="popLayout">
                 {messages.map((message) => (
-                    <div
+                    <motion.div
                     key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                     className={`flex ${
                         message.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
@@ -473,13 +479,19 @@ return (
                             // Handle text and reasoning parts
                             if (part.type === 'text' || part.type === 'reasoning') {
                                 return (
-                                <div key={`${message.id}-${i}`} className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2">
+                                <motion.div
+                                    key={`${message.id}-${i}`}
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                    className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2"
+                                >
                                     <div className="text-base whitespace-pre-wrap wrap-break-word">
                                     <ReactMarkdown  remarkPlugins={[remarkGfm]}>
                                         {part.text}
                                     </ReactMarkdown>
                                     </div>
-                                </div>
+                                </motion.div>
                                 );
                             }
 
@@ -489,25 +501,37 @@ return (
 
                                 if (part.input !== undefined) {
                                     return (
-                                        <ToolCard
+                                        <motion.div
                                             key={`${message.id}-${i}`}
-                                            toolName={toolName}
-                                            variant="call"
-                                            payload={part.input}
-                                            label={part.toolCallId}
-                                        />
+                                            initial={{ opacity: 0, scale: 0.98 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.2, ease: "easeOut" }}
+                                        >
+                                            <ToolCard
+                                                toolName={toolName}
+                                                variant="call"
+                                                payload={part.input}
+                                                label={part.toolCallId}
+                                            />
+                                        </motion.div>
                                     );
                                 }
 
                                 if (part.output !== undefined) {
                                     return (
-                                        <ToolCard
+                                        <motion.div
                                             key={`${message.id}-${i}`}
-                                            toolName={toolName}
-                                            variant="result"
-                                            payload={part.output}
-                                            label={part.toolCallId}
-                                        />
+                                            initial={{ opacity: 0, scale: 0.98 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.2, ease: "easeOut" }}
+                                        >
+                                            <ToolCard
+                                                toolName={toolName}
+                                                variant="result"
+                                                payload={part.output}
+                                                label={part.toolCallId}
+                                            />
+                                        </motion.div>
                                     );
                                 }
                             }
@@ -520,65 +544,129 @@ return (
                                 // Agent data
                                 if (mastraData?.id) {
                                 return (
-                                    <div key={`${message.id}-${i}`} className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className={`w-2 h-2 rounded-full ${
-                                        mastraData?.status === 'finished' ? 'bg-blue-500' : 'bg-blue-400 animate-pulse'
-                                        }`}></div>
-                                        <p className="text-xs font-semibold text-blue-700">Agent: {mastraData?.id || 'Unknown'}</p>
-                                    </div>
-                                    <p className="text-base text-gray-700">{mastraData?.text}</p>
-                                    </div>
+                                    <motion.div
+                                        key={`${message.id}-${i}`}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2, ease: "easeOut" }}
+                                        className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3"
+                                    >
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className={`w-2 h-2 rounded-full ${
+                                            mastraData?.status === 'finished' ? 'bg-blue-500' : 'bg-blue-400 animate-pulse'
+                                            }`}></div>
+                                            <p className="text-xs font-semibold text-blue-700">Agent: {mastraData?.id || 'Unknown'}</p>
+                                        </div>
+                                        <p className="text-base text-gray-700">{mastraData?.text}</p>
+                                    </motion.div>
                                 );
                                 }
 
                                 // Workflow data
                                 if (mastraData?.type === 'workflow') {
                                 return (
-                                    <div key={`${message.id}-${i}`} className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                                        <p className="text-xs font-semibold text-indigo-700">Workflow</p>
-                                    </div>
-                                    <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                                        {JSON.stringify(mastraData, null, 2)}
-                                    </pre>
-                                    </div>
+                                    <motion.div
+                                        key={`${message.id}-${i}`}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2, ease: "easeOut" }}
+                                        className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3"
+                                    >
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                                            <p className="text-xs font-semibold text-indigo-700">Workflow</p>
+                                        </div>
+                                        <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
+                                            {JSON.stringify(mastraData, null, 2)}
+                                        </pre>
+                                    </motion.div>
                                 );
                                 }
 
                                 // Network data
                                 if (mastraData?.type === 'network') {
                                 return (
-                                    <div key={`${message.id}-${i}`} className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                        <p className="text-xs font-semibold text-orange-700">Network</p>
-                                    </div>
-                                    <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                                        {JSON.stringify(mastraData, null, 2)}
-                                    </pre>
-                                    </div>
+                                    <motion.div
+                                        key={`${message.id}-${i}`}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2, ease: "easeOut" }}
+                                        className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3"
+                                    >
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                            <p className="text-xs font-semibold text-orange-700">Network</p>
+                                        </div>
+                                        <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
+                                            {JSON.stringify(mastraData, null, 2)}
+                                        </pre>
+                                    </motion.div>
                                 );
                                 }
                             }
 
                             return null;
                             })}
-                        </div>)}
+                        </div>
+                        )}
                     </div>
-                    </div>
+                    </motion.div>
                 ))}
+                </AnimatePresence>
                 </div>
             )}
-            {showThinkingIndicator && (
-                <div className="flex justify-start">
-                <div className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2 flex items-center gap-2 transition-opacity duration-200 ease-out">
-                    <Loader2Icon className="w-4 h-4 animate-spin" />
-                    Thinking...
-                </div>
-                </div>
-            )}
+            <AnimatePresence>
+                {showThinkingIndicator && (
+                    <motion.div
+                        key="thinking-indicator"
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                        transition={{
+                            duration: 0.25,
+                            ease: [0.4, 0, 0.2, 1]
+                        }}
+                        className="flex justify-start"
+                    >
+                        <motion.div
+                            className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2 flex items-center gap-2"
+                            animate={{
+                                boxShadow: [
+                                    "0 0 0 0 rgba(156, 163, 175, 0)",
+                                    "0 0 0 4px rgba(156, 163, 175, 0.1)",
+                                    "0 0 0 0 rgba(156, 163, 175, 0)"
+                                ]
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                        >
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                    duration: 1,
+                                    repeat: Infinity,
+                                    ease: "linear"
+                                }}
+                            >
+                                <Loader2Icon className="w-4 h-4" />
+                            </motion.div>
+                            <motion.span
+                                animate={{ opacity: [1, 0.5, 1] }}
+                                transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                            >
+                                Thinking...
+                            </motion.span>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <div ref={messagesEndRef} />
             </div>
             {/* Input Area */}
