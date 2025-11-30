@@ -20,7 +20,7 @@ steps:
       - '--region=us-east1'
       - '--platform=managed'
       - '--service-account=585298725894-compute@developer.gserviceaccount.com'
-      - '--set-env-vars=OPENAI_API_KEY=$$OPENAI_API_KEY,KITTYCAD_API_KEY=$$KITTYCAD_API_KEY,REDIS_URL=$$REDIS_URL'
+      - '--set-env-vars=NEXT_PUBLIC_OPENAI_API_KEY=$$NEXT_PUBLIC_OPENAI_API_KEY,NEXT_PUBLIC_KITTYCAD_API_KEY=$$NEXT_PUBLIC_KITTYCAD_API_KEY,REDIS_URL=$$REDIS_URL'
       - '--port=3000'
       - '--concurrency=80'
       - '--timeout=300s'
@@ -29,16 +29,16 @@ steps:
       - '--cpu-boost'
       - '--max-instances=20'
       - '--allow-unauthenticated'
-    secretEnv: ['OPENAI_API_KEY', 'KITTYCAD_API_KEY', 'REDIS_URL']
+    secretEnv: ['NEXT_PUBLIC_OPENAI_API_KEY', 'NEXT_PUBLIC_KITTYCAD_API_KEY', 'REDIS_URL']
 
 options:
   logging: CLOUD_LOGGING_ONLY
 
 availableSecrets:
   secretManager:
-    - versionName: projects/585298725894/secrets/OPENAI_API_KEY/versions/latest
-      env: 'OPENAI_API_KEY'
-    - versionName: projects/585298725894/secrets/KITTYCAD_API_KEY/versions/latest
-      env: 'KITTYCAD_API_KEY'
+    - versionName: projects/585298725894/secrets/NEXT_PUBLIC_OPENAI_API_KEY/versions/latest
+      env: 'NEXT_PUBLIC_OPENAI_API_KEY'
+    - versionName: projects/585298725894/secrets/NEXT_PUBLIC_KITTYCAD_API_KEY/versions/latest
+      env: 'NEXT_PUBLIC_KITTYCAD_API_KEY'
     - versionName: projects/585298725894/secrets/REDIS_URL/versions/latest
       env: 'REDIS_URL'
