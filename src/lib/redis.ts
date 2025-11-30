@@ -34,6 +34,7 @@ export async function getJobs(): Promise<string[] | null> {
 
     try {
         const jobs: string[] = await client.lRange('jobs', 0, -1);
+        console.log("jobs: ", jobs)
         return jobs;
     } catch (error) {
         throw error;

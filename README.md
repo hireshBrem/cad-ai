@@ -49,6 +49,13 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Example Prompts
+Here are some example prompts you can use to generate CAD designs:
+
+- "Create a flange with a 50mm diameter, 6 holes for M8 bolts, and 10mm thickness"
+- "Design a gear with 40 teeth, 30mm pitch diameter, and 5mm face width"
+- "Model a mounting bracket with two 8mm holes spaced 60mm apart"
+
 ## Tech Stack
 
 - Next.js 16 (App Router) + React 19
