@@ -8,39 +8,30 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ObjViewer from "@/components/ObjViewer";
 import ToolCard from "@/components/ToolCard";
+import CADInfoPanel from "@/components/CADInfoPanel";
+import SettingsModal from "@/components/SettingsModal";
 import { Toaster } from "@/components/ui/sonner";
-import { useTabs } from "@/hooks/tab";
-import { XIcon, PackageIcon, ArrowUpRightIcon, PlusIcon, Loader2Icon, InfoIcon, DownloadIcon, Settings2Icon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { useTabs } from "@/hooks/useTabs";
+import { useApiKeys } from "@/hooks/useApiKeys";
+import { useCADJob } from "@/hooks/useCADJob";
+import { CadToolOutput, MastraData } from "@/types/app";
+import { XIcon, PackageIcon, ArrowUpRightIcon, PlusIcon, Loader2Icon, InfoIcon, Settings2Icon } from "lucide-react";
 import { toast } from "sonner";
-
-const CAD_JOB_ID_REGEX =
-  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-const TERMINAL_CAD_STATUSES = new Set([
-  "completed",
-  "failed",
-  "rejected",
-  "cancelled",
-  "canceled",
-]);
-
-const isTerminalCadStatus = (status?: string | number) => {
-//   console.log('status', status);
-  if (status === 401){
-    console.log('status is 401');
-  }
-  if (!status || typeof status !== 'string') return false;
-  return TERMINAL_CAD_STATUSES.has(status.trim().toLowerCase());
-};
 
 export default function Home() {
     const [input, setInput] = useState('');
-    const [cadJobError, setCadJobError] = useState<string | null>(null);
     const [infoOpen, setInfoOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
-    const [showOpenAIKey, setShowOpenAIKey] = useState(false);
-    const [showKittyCADKey, setShowKittyCADKey] = useState(false);
-    const [openAIKey, setOpenAIKey] = useState('');
-    const [kittyCADKey, setKittyCADKey] = useState('');
+    const {
+        openAIKey,
+        kittyCADKey,
+        setOpenAIKey,
+        setKittyCADKey,
+        showOpenAIKey,
+        showKittyCADKey,
+        setShowOpenAIKey,
+        setShowKittyCADKey
+    } = useApiKeys();
     const {
         tabs,
         activeTab,
@@ -51,18 +42,15 @@ export default function Home() {
         refreshTabs,
         isAtMaxTabs,
     } = useTabs( { kittyCADKey } );
+    const { cadJobError, setCadJobError } = useCADJob({
+        jobId: activeTab?.jobId,
+        cadJobStatus: activeTab?.cadJob?.status,
+        kittyCADKey,
+        refreshTabs,
+    });
     const infoMenuRef = useRef<HTMLDivElement | null>(null);
     const settingsMenuRef = useRef<HTMLDivElement | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {  
-        // get from env variables
-        const savedOpenAIKey2 = process.env.NEXT_PUBLIC_OPENAI_API_KEY!
-        const savedKittyCADKey2 = process.env.NEXT_PUBLIC_KITTYCAD_API_KEY!
-
-        setOpenAIKey(savedOpenAIKey2);
-        setKittyCADKey(savedKittyCADKey2);
-    }, []);
 
     const { messages, sendMessage, status } = useChat({
         transport: new DefaultChatTransport({
@@ -76,21 +64,8 @@ export default function Home() {
     const hasAssistantContent = messages.some(
         (message) => message.role !== 'user' && message.parts.length > 0
     );
+    
     const showThinkingIndicator = status === 'submitted' || (status === 'streaming' && !hasAssistantContent);
-
-    type CadToolOutput = {
-        success?: boolean;
-        data?: {
-            id?: string;
-        };
-    };
-
-    type MastraData = {
-        id?: string;
-        status?: string;
-        text?: string;
-        type?: string;
-    };
 
     const submitMessage = async () => {
         if (!input.trim() || isLoading) return;
@@ -109,36 +84,11 @@ export default function Home() {
         setInput('');
         await sendMessage({ text: messageText });
     };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await submitMessage();
     };
-
-    useEffect(() => {
-        const jobId = activeTab?.jobId;
-        if (jobId && CAD_JOB_ID_REGEX.test(jobId)) {
-            handleCADfile(jobId);
-        }
-    }, [activeTab?.jobId, activeTab?.cadJob?.status]);
-
-    useEffect(() => {
-        const jobId = activeTab?.jobId;
-        if (!jobId || !CAD_JOB_ID_REGEX.test(jobId)) {
-            return;
-        }
-
-        if (isTerminalCadStatus(activeTab?.cadJob?.status)) {
-            refreshTabs();
-            return;
-        }
-
-        refreshTabs();
-        const intervalId = setInterval(() => {
-            refreshTabs();
-        }, 3000);
-
-        return () => clearInterval(intervalId);
-    }, [activeTab?.jobId, activeTab?.cadJob?.status, refreshTabs]);
 
     useEffect(() => {
         if (!infoOpen) return;
@@ -167,92 +117,8 @@ export default function Home() {
     }, [settingsOpen]);
 
     useEffect(() => {
-        setInfoOpen(false);
-    }, [activeTabId]);
-
-    useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
-
-    const infoFields = activeTab
-        ? [
-            { label: 'Name', value: activeTab.name },
-            { label: 'Job ID', value: activeTab.jobId }
-        ].filter((field) => field.value)
-        : [];
-
-    const handleCADfile = async (tabId: string) => {
-        const fallbackId = tabId;
-        setCadJobError(null);
-
-        try {
-            const response = await fetch(`/api/cad-proxy?cadId=${encodeURIComponent(fallbackId)}`, {
-                body: JSON.stringify({ kittyCADKey }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                method: 'POST',
-                credentials: 'include',
-                mode: 'cors',
-                cache: 'no-store',
-                redirect: 'follow',
-            });
-            const clonedResponse = response.clone();
-            let payload: unknown;
-
-        try {
-            payload = await response.json();
-        } catch {
-            payload = await clonedResponse.text();
-        }
-
-        if (!response.ok) {
-            const errorMessage = typeof payload === "string" ? payload : JSON.stringify(payload);
-            console.log(errorMessage)
-            // throw new Error(`CAD proxy failed: ${errorMessage}`);
-        }
-
-
-    } catch (error) {
-        console.error("Failed to fetch CAD job", error);
-        if (error instanceof Error) {
-            setCadJobError(error.message);
-        } else {
-            setCadJobError("Unknown error fetching CAD job.");
-        }
-        } finally {
-        }
-    };
-
-    const handleDownloadSTEP = () => {
-        const base64Data = activeTab?.cadJob?.outputs?.['source.step'];
-        if (!base64Data) {
-            console.error('No STEP file available');
-        return;
-        }
-
-        try {
-            // Decode base64 to binary
-            const binaryString = atob(base64Data);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-
-            // Create blob and download
-            const blob = new Blob([bytes], { type: 'application/step' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `design_${activeTab?.jobId || 'export'}.step`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Failed to download STEP file:', error);
-        }
-    };
 
     // Watch for new text-to-cad tool results and refresh jobs
     useEffect(() => {
@@ -282,7 +148,12 @@ return (
             {tabs.map((tab) => (
                 <div
                 key={tab.tabId}
-                onClick={() => setActiveTabId(tab.tabId)}
+                onClick={() => {
+                    if (activeTabId !== tab.tabId) {
+                        setInfoOpen(false);
+                    }
+                    setActiveTabId(tab.tabId);
+                }}
                 className={`group flex items-center gap-2 px-3 py-1.5 rounded-2xl cursor-pointer transition-colors shrink-0 ${
                     activeTabId === tab.tabId
                     ? 'bg-gray-800 text-white'
@@ -325,68 +196,22 @@ return (
                 <div className="w-full relative flex flex-col h-full">
                 <button
                     type="button"
-                    onClick={() => setInfoOpen(!infoOpen)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setInfoOpen(!infoOpen);
+                    }}
                     className="absolute cursor-pointer top-3 right-3 z-10 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
                     aria-label="Toggle CAD info panel"
                 >
                     <InfoIcon className="h-4 w-4" />
                 </button>
-                {infoOpen && (
-                    <div
-                    ref={infoMenuRef}
-                    className="absolute top-14 right-0 z-20 w-96 rounded-2xl border border-gray-200 bg-white shadow-xl backdrop-blur-sm"
-                    >
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Design Details</h3>
-                        <button
-                        type="button"
-                        onClick={() => setInfoOpen(false)}
-                        className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                        aria-label="Close CAD info panel"
-                        >
-                        <XIcon className="h-5 w-5" />
-                        </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className="space-y-6 px-6 py-4">
-                        {/* Name Field */}
-                        {infoFields.map((field) => {
-                            if (field.label === "Name") {
-                                return (
-                                    <div key={field.label} className="space-y-2">
-                                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            {field.label}
-                                        </label>
-                                        <p className="rounded-lg bg-gray-50 px-3 py-2.5 font-medium text-gray-900 break-all">
-                                            {field.value}
-                                        </p>
-                                    </div>
-                                );
-                            }
-                        })}
-
-                        {/* Download Button */}
-                        {activeTab.cadJob?.outputs?.['source.step'] && (
-                            <button
-                                onClick={handleDownloadSTEP}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-2xl transition-colors duration-200"
-                            >
-                                <DownloadIcon className="w-4 h-4" />
-                                <span>Export as STEP</span>
-                            </button>
-                        )}
-
-                        {/* Error Message */}
-                        {cadJobError && (
-                            <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5">
-                                <p className="text-sm text-red-700">{cadJobError}</p>
-                            </div>
-                        )}
-                    </div>
-                    </div>
-                )}
+                <CADInfoPanel
+                    activeTab={activeTab}
+                    cadJobError={cadJobError}
+                    isOpen={infoOpen}
+                    onClose={() => setInfoOpen(false)}
+                    menuRef={infoMenuRef}
+                />
                 <div className="rounded-b-2xl bg-white/80 p-3 w-full h-full overflow-hidden">
                     <div className="relative w-full h-full">
                     {activeTab.cadJob?.status === 'completed' ? (
@@ -671,112 +496,46 @@ return (
             </div>
             {/* Input Area */}
             <div className="p-4">
-            <form onSubmit={handleSubmit} className="flex w-full flex-col gap-1 border border-gray-200 rounded-2xl p-2">
-                <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    void submitMessage();
-                    }
-                }}
-                placeholder="Create a 3D model of a chair..."
-                disabled={isLoading}
-                rows={3}
-                className="chat-textarea w-full min-h-[90px] p-1 text-base text-black resize-none focus:outline-none "
-                />
-                <div className="flex justify-end">
-                <button
-                    type="submit"
-                    disabled={isLoading || !input?.trim()}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-white shadow-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <ArrowUpRightIcon className="w-4 h-4" />
-                </button>
-                </div>
-            </form>
+                <form onSubmit={handleSubmit} className="flex w-full flex-col gap-1 border border-gray-200 rounded-2xl p-2">
+                    <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        void submitMessage();
+                        }
+                    }}
+                    placeholder="Create a 3D model of a chair..."
+                    disabled={isLoading}
+                    rows={3}
+                    className="chat-textarea w-full min-h-[90px] p-1 text-base text-black resize-none focus:outline-none "
+                    />
+                    <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={isLoading || !input?.trim()}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-white shadow-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <ArrowUpRightIcon className="w-4 h-4" />
+                    </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        {/* Global Settings Modal */}
-        {settingsOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div
-                    ref={settingsMenuRef}
-                    className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl"
-                >
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
-                        <button
-                            type="button"
-                            onClick={() => setSettingsOpen(false)}
-                            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                            aria-label="Close settings"
-                        >
-                            <XIcon className="h-5 w-5" />
-                        </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className="space-y-4 px-6 py-4">
-                        {/* OpenAI API Key */}
-                        <div className="space-y-2">
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                OpenAI API Key
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showOpenAIKey ? "text" : "password"}
-                                    placeholder="sk-..."
-                                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                                    value={openAIKey}
-                                    onChange={(e) => {
-                                        setOpenAIKey(e.target.value);
-                                        localStorage.setItem('cad-openai-key', e.target.value);
-                                    }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                    aria-label={showOpenAIKey ? "Hide API key" : "Show API key"}
-                                >
-                                    {showOpenAIKey ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* KittyCAD API Key */}
-                        <div className="space-y-2">
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                KittyCAD API Key
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showKittyCADKey ? "text" : "password"}
-                                    placeholder="Enter your KittyCAD API key"
-                                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                                    value={kittyCADKey}
-                                    onChange={(e) => {
-                                        setKittyCADKey(e.target.value);
-                                        localStorage.setItem('cad-kittycad-key', e.target.value);
-                                    }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowKittyCADKey(!showKittyCADKey)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                    aria-label={showKittyCADKey ? "Hide API key" : "Show API key"}
-                                >
-                                    {showKittyCADKey ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
+        <SettingsModal
+            isOpen={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            openAIKey={openAIKey}
+            setOpenAIKey={setOpenAIKey}
+            showOpenAIKey={showOpenAIKey}
+            setShowOpenAIKey={setShowOpenAIKey}
+            kittyCADKey={kittyCADKey}
+            setKittyCADKey={setKittyCADKey}
+            showKittyCADKey={showKittyCADKey}
+            setShowKittyCADKey={setShowKittyCADKey}
+            menuRef={settingsMenuRef}
+        />
     </div>
 )}

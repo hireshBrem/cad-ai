@@ -46,4 +46,18 @@ export interface TextToCadToolInput {
       projectName?: string;
     };
   }
+
+export interface CadToolOutput {
+  success?: boolean;
+  data?: {
+    id?: string;
+  };
+}
+
+export interface MastraData {
+  id?: string;
+  status?: string;
+  text?: string;
+  type?: string;
+}
   
