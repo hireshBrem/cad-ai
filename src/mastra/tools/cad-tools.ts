@@ -17,11 +17,11 @@ export const textToCadTool = createTool({
     modelVersion: z.string().optional().describe("KittyCAD model version to run the prompt through"),
     projectName: z.string().optional().describe("Project name to associate with the prompt"),
   }),
-  execute: async (input: TextToCadToolInput, executionContext?: { toolContext?: { kittyCADKey?: string; redisUrl?: string } }) => {
+  execute: async (input: TextToCadToolInput) => {
     try {
         // Get keys from toolContext or fall back to env
-        const kittyCADKey = executionContext?.toolContext?.kittyCADKey || process.env.KITTYCAD_API_KEY;
-        const redisUrl = executionContext?.toolContext?.redisUrl || process.env.REDIS_URL;
+        const kittyCADKey = process.env.NEXT_PUBLIC_KITTYCAD_API_KEY;
+        const redisUrl = process.env.REDIS_URL;
         console.log('kittyCADKey', kittyCADKey);
         console.log('redisUrl', redisUrl);
         
