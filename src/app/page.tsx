@@ -91,6 +91,7 @@ export default function Home() {
     };
 
     useEffect(() => {
+        console.log('tabs', tabs);
         if (!infoOpen) return;
         const handleClick = (event: MouseEvent) => {
             if (infoMenuRef.current && !infoMenuRef.current.contains(event.target as Node)) {
@@ -117,7 +118,9 @@ export default function Home() {
     }, [settingsOpen]);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({
+            behavior: isLoading ? 'auto' : 'smooth'
+        });
     }, [messages, isLoading]);
 
     // Watch for new text-to-cad tool results and refresh jobs
@@ -444,32 +447,11 @@ return (
                 {showThinkingIndicator && (
                     <motion.div
                         key="thinking-indicator"
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                        transition={{
-                            duration: 0.25,
-                            ease: [0.4, 0, 0.2, 1]
-                        }}
                         className="flex justify-start"
                     >
                         <motion.div
-                            className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2 flex items-center gap-2"
-                            animate={{
-                                boxShadow: [
-                                    "0 0 0 0 rgba(156, 163, 175, 0)",
-                                    "0 0 0 4px rgba(156, 163, 175, 0.1)",
-                                    "0 0 0 0 rgba(156, 163, 175, 0)"
-                                ]
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                        >
+                            className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2 flex items-center gap-2"          >
                             <motion.div
-                                animate={{ rotate: 360 }}
                                 transition={{
                                     duration: 1,
                                     repeat: Infinity,
@@ -479,7 +461,6 @@ return (
                                 <Loader2Icon className="w-4 h-4" />
                             </motion.div>
                             <motion.span
-                                animate={{ opacity: [1, 0.5, 1] }}
                                 transition={{
                                     duration: 1.5,
                                     repeat: Infinity,
