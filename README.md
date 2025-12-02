@@ -2,7 +2,7 @@
 
 AI-powered CAD design assistant. This project lets you create CAD designs using AI.
 
-![CAD AI demo screenshot](public/demo-pic.png)
+![CAD AI demo](public/cursor-for-cad.gif)
 
 ## Clone the Repository
 
